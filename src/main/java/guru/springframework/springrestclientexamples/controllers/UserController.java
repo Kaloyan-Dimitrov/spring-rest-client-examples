@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by jt on 9/22/17.
  */
@@ -28,15 +30,17 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public String formPost(Model model, ServerWebExchange serverWebExchange){
+    public String formPost(Model model, ServerWebExchange serverWebExchange) throws ExecutionException, InterruptedException {
+        log.debug("Received post request");
 
-        MultiValueMap<String, String> map = serverWebExchange.getFormData().block();
+        MultiValueMap<String, String> map = serverWebExchange.getFormData().toFuture().get();
 
-        Integer limit = new Integer(map.get("limit").get(0));
+        assert map != null;
+        int limit = Integer.parseInt(map.get("limit").get(0));
 
         log.debug("Received Limit value: " + limit);
         //default if null or zero
-        if(limit == null || limit == 0){
+        if(limit == 0){
             log.debug("Setting limit to default of 10");
             limit = 10;
         }
